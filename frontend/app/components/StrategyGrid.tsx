@@ -1,13 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  TrendingUp,
-  TrendingDown,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-} from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { StrategyOptimizationResult } from "@/app/types";
 
 interface StrategyGridProps {

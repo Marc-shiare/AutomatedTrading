@@ -1,11 +1,15 @@
-import { Metadata } from "next";
-import DashboardLayout from "@/app/components/DashboardLayout";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Positions - QuantumTrade",
-};
+import { useState } from "react";
+import { motion } from "framer-motion";
+import DashboardLayout from "@/app/components/DashboardLayout";
+import LivePositions from "@/app/components/LivePositions";
+import TradeExecutionLog from "@/app/components/TradeExecutionLog";
+import { Activity, TrendingUp, TrendingDown } from "lucide-react";
 
 export default function PositionsPage() {
+  const [activeTab, setActiveTab] = useState<"live" | "history">("live");
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -16,31 +20,110 @@ export default function PositionsPage() {
           </p>
         </div>
 
-        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-12 text-center">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-neutral-800 mb-4">
-            <svg
-              className="h-8 w-8 text-neutral-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
+        {/* Summary Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <Activity className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500">Open Positions</p>
+                <p className="text-2xl font-bold text-white">4</p>
+              </div>
+            </div>
           </div>
-          <h3 className="text-lg font-medium text-white mb-2">
-            Position Management
-          </h3>
-          <p className="text-sm text-neutral-400 max-w-md mx-auto">
-            Real-time position tracking with WebSocket updates,
-            trade history, and P&L analysis.
-          </p>
-          <p className="text-xs text-neutral-600 mt-4">Phase 2 Feature</p>
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500">Long Positions</p>
+                <p className="text-2xl font-bold text-white">3</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-red-500/10 flex items-center justify-center">
+                <TrendingDown className="h-5 w-5 text-red-400" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500">Short Positions</p>
+                <p className="text-2xl font-bold text-white">1</p>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-1 bg-neutral-900 border border-neutral-800 rounded-lg p-1 w-fit">
+          <button
+            onClick={() => setActiveTab("live")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "live"
+                ? "bg-emerald-500 text-white"
+                : "text-neutral-400 hover:text-neutral-200"
+            }`}
+          >
+            Live Positions
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "history"
+                ? "bg-emerald-500 text-white"
+                : "text-neutral-400 hover:text-neutral-200"
+            }`}
+          >
+            Trade History
+          </button>
+        </div>
+
+        {activeTab === "live" ? (
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="xl:col-span-2">
+              <LivePositions />
+            </div>
+            <div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="bg-neutral-900 border border-neutral-800 rounded-xl p-6"
+              >
+                <h3 className="text-lg font-semibold text-white mb-4">Position Summary</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-neutral-400">Total Exposure</span>
+                    <span className="text-sm font-medium text-white">2.85 lots</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-neutral-400">Net Exposure</span>
+                    <span className="text-sm font-medium text-emerald-400">+1.65 lots</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-neutral-400">Used Margin</span>
+                    <span className="text-sm font-medium text-white">$1,250.00</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-neutral-400">Free Margin</span>
+                    <span className="text-sm font-medium text-white">$11,500.50</span>
+                  </div>
+                  <div className="border-t border-neutral-800 pt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-neutral-400">Unrealized P&L</span>
+                      <span className="text-sm font-bold text-emerald-400">+$245.50</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        ) : (
+          <TradeExecutionLog />
+        )}
       </div>
     </DashboardLayout>
   );

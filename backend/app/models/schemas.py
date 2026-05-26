@@ -46,6 +46,8 @@ class LiveTrade(BaseModel):
     pnl_percent: float
     risk_reward_ratio: float
     slippage_pips: float
+    spread_pips: float = 0.0
+    commission: float = 0.0
     status: Literal["open", "closed"]
 
 
@@ -57,6 +59,7 @@ class PositionUpdate(BaseModel):
     entry_price: float
     current_price: float
     unrealized_pnl: float
+    unrealized_pips: float
     risk_level: Literal["low", "normal", "high", "critical"]
     max_daily_drawdown_used: float
     max_daily_drawdown_limit: float

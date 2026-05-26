@@ -2,10 +2,18 @@
 
 import dynamic from "next/dynamic";
 import DashboardLayout from "@/app/components/DashboardLayout";
+import ToastAlertPopups from "@/app/components/ToastAlertPopups";
 import KPICards from "@/app/components/KPICards";
 import StrategyGrid from "@/app/components/StrategyGrid";
 import LivePositions from "@/app/components/LivePositions";
-import { generateMockStrategies, generateMockPositions } from "@/app/lib/mockData";
+import TradeExecutionLog from "@/app/components/TradeExecutionLog";
+import NewsTicker from "@/app/components/NewsTicker";
+import OptimizerProgress from "@/app/components/OptimizerProgress";
+import OptimizerStats from "@/app/components/OptimizerStats";
+import TradeWeekSummary from "@/app/components/TradeWeekSummary";
+import DailyMarketSummary from "@/app/components/DailyMarketSummary";
+import PerformanceSnapshot from "@/app/components/PerformanceSnapshot";
+import { generateMockStrategies } from "@/app/lib/mockData";
 
 const EquityCurveChart = dynamic(
   () => import("@/app/components/EquityCurveChart"),
@@ -14,10 +22,12 @@ const EquityCurveChart = dynamic(
 
 export default function DashboardPage() {
   const strategies = generateMockStrategies(6);
-  const positions = generateMockPositions(4);
 
   return (
     <DashboardLayout>
+      {/* Floating alerts overlay */}
+      <ToastAlertPopups />
+
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Dashboard</h1>
@@ -33,8 +43,25 @@ export default function DashboardPage() {
             <EquityCurveChart />
           </div>
           <div>
-            <LivePositions positions={positions} />
+            <LivePositions />
           </div>
+        </div>
+
+        {/* Row 3: Trade log + Optimizer (mirrors row 2) */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-2">
+            <TradeExecutionLog />
+          </div>
+          <div>
+            <OptimizerProgress />
+          </div>
+        </div>
+
+        {/* Row 4: 3-column data cards */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <TradeWeekSummary />
+          <DailyMarketSummary />
+          <PerformanceSnapshot />
         </div>
 
         <StrategyGrid strategies={strategies} />

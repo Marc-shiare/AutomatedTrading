@@ -3,12 +3,16 @@
 import { motion } from "framer-motion";
 import { Activity, TrendingUp, TrendingDown } from "lucide-react";
 import { PositionUpdate } from "@/app/types";
+import { useLivePositions } from "@/app/hooks/useLivePositions";
 
-interface LivePositionsProps {
-  positions: PositionUpdate[];
+interface LivePositionsWidgetProps {
+  positions?: PositionUpdate[];
 }
 
-export default function LivePositions({ positions }: LivePositionsProps) {
+export default function LivePositionsWidget({ positions: propPositions }: LivePositionsWidgetProps) {
+  const hook = useLivePositions(4, 5000);
+  const positions = propPositions ?? hook.positions;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -19,9 +23,7 @@ export default function LivePositions({ positions }: LivePositionsProps) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-semibold text-white">Live Positions</h3>
-          <p className="text-sm text-neutral-400 mt-1">
-            Real-time position updates
-          </p>
+          <p className="text-sm text-neutral-400 mt-1">Real-time position updates</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -32,7 +34,7 @@ export default function LivePositions({ positions }: LivePositionsProps) {
       <div className="space-y-3">
         {positions.map((position, index) => (
           <motion.div
-            key={`${position.symbol}-${index}`}
+            key={`${position.symbol}-${position.strategy_id}-${index}`}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.1 * index }}
@@ -41,9 +43,7 @@ export default function LivePositions({ positions }: LivePositionsProps) {
             <div className="flex items-center gap-4">
               <div
                 className={`flex items-center justify-center h-10 w-10 rounded-lg ${
-                  position.side === "BUY"
-                    ? "bg-emerald-500/10"
-                    : "bg-red-500/10"
+                  position.side === "BUY" ? "bg-emerald-500/10" : "bg-red-500/10"
                 }`}
               >
                 {position.side === "BUY" ? (
@@ -54,9 +54,7 @@ export default function LivePositions({ positions }: LivePositionsProps) {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-white">
-                    {position.symbol}
-                  </span>
+                  <span className="text-sm font-medium text-white">{position.symbol}</span>
                   <span
                     className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium ${
                       position.side === "BUY"
@@ -68,7 +66,7 @@ export default function LivePositions({ positions }: LivePositionsProps) {
                   </span>
                 </div>
                 <p className="text-xs text-neutral-500 mt-0.5">
-                  Size: {position.current_size} @ {position.entry_price}
+                  Size: {position.current_lot_size} lots @ {position.entry_price.toFixed(5)}
                 </p>
               </div>
             </div>
@@ -76,16 +74,14 @@ export default function LivePositions({ positions }: LivePositionsProps) {
             <div className="text-right">
               <p
                 className={`text-sm font-medium ${
-                  position.unrealized_pnl >= 0
-                    ? "text-emerald-400"
-                    : "text-red-400"
+                  position.unrealized_pnl >= 0 ? "text-emerald-400" : "text-red-400"
                 }`}
               >
-                {position.unrealized_pnl >= 0 ? "+" : ""}$
-                {position.unrealized_pnl.toFixed(2)}
+                {position.unrealized_pnl >= 0 ? "+" : ""}$ {position.unrealized_pnl.toFixed(2)}
               </p>
               <p className="text-xs text-neutral-500 mt-0.5">
-                Current: {position.current_price}
+                {position.unrealized_pips >= 0 ? "+" : ""}
+                {position.unrealized_pips.toFixed(1)} pips
               </p>
             </div>
           </motion.div>

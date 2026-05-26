@@ -21,7 +21,7 @@ export default function LandingPage() {
           className="mb-6 inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-400"
         >
           <span className="mr-2 flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          Phase 1 — Live Dashboard Ready
+          Phase 2 — Live Dashboard Active
         </motion.div>
 
         {/* Headline */}
@@ -31,11 +31,11 @@ export default function LandingPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="max-w-4xl text-4xl font-bold tracking-tight text-white sm:text-6xl md:text-7xl"
         >
-          Self-Optimizing
-          <br />
-          <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-            Algorithmic Trading
-          </span>
+            Self-Optimizing
+            <br />
+            <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+              Algorithmic Trading
+            </span>
         </motion.h1>
 
         {/* Subheadline */}
@@ -113,7 +113,7 @@ export default function LandingPage() {
         transition={{ delay: 0.8 }}
         className="absolute bottom-6 text-sm text-neutral-600"
       >
-        QuantumTrade v1.0 — Built for 24/7 autonomous trading
+        QuantumTrade v1.1 — Built for 24/7 autonomous trading
       </motion.footer>
     </div>
   );

@@ -1,0 +1,113 @@
+{
+  "version": "1.0",
+  "schema": "QuantumTrade MT5 Strategy Configuration",
+  
+  "strategy": {
+    "name": "momentum_breakout",
+    "display_name": "Momentum Breakout (10min)",
+    "symbol": "EURUSD",
+    "base_currency": "EUR",
+    "quote_currency": "USD",
+    "timeframe": "PERIOD_M10",
+    "magic_number": 123456,
+    "enabled": true,
+    "description": "Momentum-based breakout strategy using fast/slow MA crossover with RSI confirmation"
+  },
+  
+  "parameters": {
+    "fast_ma": {
+      "value": 12,
+      "type": "integer",
+      "min": 5,
+      "max": 50,
+      "step": 1,
+      "description": "Fast moving average period"
+    },
+    "slow_ma": {
+      "value": 26,
+      "type": "integer",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "description": "Slow moving average period"
+    },
+    "rsi_threshold": {
+      "value": 65.0,
+      "type": "float",
+      "min": 30.0,
+      "max": 80.0,
+      "step": 1.0,
+      "description": "RSI overbought threshold for entry confirmation"
+    },
+    "stop_loss_pips": {
+      "value": 25.0,
+      "type": "float",
+      "min": 10.0,
+      "max": 100.0,
+      "step": 5.0,
+      "description": "Stop loss distance in pips"
+    },
+    "take_profit_pips": {
+      "value": 50.0,
+      "type": "float",
+      "min": 20.0,
+      "max": 200.0,
+      "step": 5.0,
+      "description": "Take profit distance in pips"
+    },
+    "risk_per_trade": {
+      "value": 2.0,
+      "type": "float",
+      "min": 0.5,
+      "max": 10.0,
+      "step": 0.5,
+      "description": "Risk percentage per trade"
+    }
+  },
+  
+  "execution": {
+    "max_spread_pips": 2.0,
+    "use_slippage_protection": true,
+    "slippage_points": 10,
+    "allow_hedging": false,
+    "max_concurrent_trades": 1,
+    "trade_session_start": "00:00",
+    "trade_session_end": "23:59",
+    "avoid_weekend": true
+  },
+  
+  "risk_management": {
+    "daily_loss_limit_percent": 5.0,
+    "weekly_loss_limit_percent": 10.0,
+    "max_daily_trades": 10,
+    "max_drawdown_alert_percent": 8.0,
+    "use_trailing_stop": false,
+    "trailing_stop_distance_pips": 15.0
+  },
+  
+  "optimization": {
+    "target_metric": "sharpe_ratio",
+    "min_sharpe": 1.0,
+    "min_profit_factor": 1.5,
+    "max_drawdown_acceptable": 0.20,
+    "walk_forward_split": 0.80,
+    "optimization_frequency_days": 7
+  },
+  
+  "logging": {
+    "log_level": "info",
+    "log_to_file": true,
+    "log_to_server": true,
+    "report_interval_minutes": 60
+  },
+  
+  "mt5_settings": {
+    "chart_template": "QuantumTrade_Default.tpl",
+    "indicators": [
+      "Moving Average (SMA, Fast)",
+      "Moving Average (SMA, Slow)",
+      "RSI (14)"
+    ],
+    "color_scheme": "dark"
+  }
+}

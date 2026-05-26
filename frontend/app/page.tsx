@@ -1,4 +1,6 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import LandingPage from "./components/LandingPage";
 
 export const metadata: Metadata = {
@@ -7,6 +9,13 @@ export const metadata: Metadata = {
     "Self-Optimizing Algorithmic Trading Platform with NinjaTrader 8 Integration",
 };
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("quantum_auth");
+
+  if (authToken) {
+    redirect("/dashboard");
+  }
+
   return <LandingPage />;
 }

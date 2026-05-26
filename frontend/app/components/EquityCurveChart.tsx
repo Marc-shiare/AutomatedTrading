@@ -26,7 +26,9 @@ function generateEquityCurve(): EquityPoint[] {
     const date = new Date(startDate);
     date.setDate(date.getDate() + i);
 
-    const dayReturn = (Math.random() - 0.45) * 200;
+    // Simulate more realistic equity curve with trends and drawdowns
+    const trend = Math.sin(i / 10) * 50; // Long-term trend
+    const dayReturn = (Math.random() - 0.48) * 200 + trend;
     equity = Math.max(equity + dayReturn, 9000);
 
     data.push({
@@ -38,8 +40,25 @@ function generateEquityCurve(): EquityPoint[] {
   return data;
 }
 
+function formatCurrency(value: number): string {
+  if (value >= 1000) {
+    return `$${(value / 1000).toFixed(1)}k`;
+  }
+  return `$${value}`;
+}
+
 export default function EquityCurveChart() {
   const data = useMemo(() => generateEquityCurve(), []);
+
+  const stats = useMemo(() => {
+    const first = data[0]?.equity || 10000;
+    const last = data[data.length - 1]?.equity || 10000;
+    const max = Math.max(...data.map((d) => d.equity));
+    const min = Math.min(...data.map((d) => d.equity));
+    const returnPct = ((last - first) / first) * 100;
+
+    return { returnPct, max, min, first, last };
+  }, [data]);
 
   return (
     <motion.div
@@ -48,14 +67,18 @@ export default function EquityCurveChart() {
       transition={{ duration: 0.5, delay: 0.4 }}
       className="bg-neutral-900 border border-neutral-800 rounded-xl p-6"
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold text-white">Equity Curve</h3>
           <p className="text-sm text-neutral-400 mt-1">
             Portfolio value over last 90 days
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-3 text-xs">
+          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${stats.returnPct >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+            {stats.returnPct >= 0 ? "+" : ""}
+            {stats.returnPct.toFixed(1)}% total return
+          </span>
           <span className="inline-block w-3 h-3 rounded-sm bg-emerald-500" />
           <span className="text-neutral-400">Portfolio</span>
         </div>
@@ -91,9 +114,7 @@ export default function EquityCurveChart() {
             />
             <YAxis
               tick={{ fill: "#737373", fontSize: 11 }}
-              tickFormatter={(value: number) =>
-                `$${(value / 1000).toFixed(1)}k`
-              }
+              tickFormatter={(value: number) => formatCurrency(value)}
               stroke="#404040"
               tickLine={false}
               axisLine={false}

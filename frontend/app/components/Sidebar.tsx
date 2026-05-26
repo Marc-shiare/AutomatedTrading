@@ -77,7 +77,7 @@ export default function Sidebar() {
           System Operational
         </div>
         <div className="mt-1 text-xs text-neutral-600">
-          v1.0.0 — Phase 1
+          v1.1.0 — Phase 2
         </div>
       </div>
     </aside>
