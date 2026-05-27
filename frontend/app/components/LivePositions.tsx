@@ -10,8 +10,8 @@ interface LivePositionsWidgetProps {
 }
 
 export default function LivePositionsWidget({ positions: propPositions }: LivePositionsWidgetProps) {
-  const hook = useLivePositions(4, 5000);
-  const positions = propPositions ?? hook.positions;
+  const hook = useLivePositions(4, 5000, propPositions);
+  const positions = propPositions ? { positions: propPositions } : hook;
 
   return (
     <motion.div
@@ -32,7 +32,7 @@ export default function LivePositionsWidget({ positions: propPositions }: LivePo
       </div>
 
       <div className="space-y-3">
-        {positions.map((position, index) => (
+        {positions.positions.map((position, index) => (
           <motion.div
             key={`${position.symbol}-${position.strategy_id}-${index}`}
             initial={{ opacity: 0, x: -10 }}
@@ -87,7 +87,7 @@ export default function LivePositionsWidget({ positions: propPositions }: LivePo
           </motion.div>
         ))}
 
-        {positions.length === 0 && (
+        {positions.positions.length === 0 && (
           <div className="text-center py-8 text-neutral-500">
             <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No open positions</p>

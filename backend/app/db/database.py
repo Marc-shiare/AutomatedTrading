@@ -7,10 +7,7 @@ from sqlalchemy.orm import declarative_base
 
 # ── Configuration ──────────────────────────────────────────────────────
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://trading_user:trading_pass@localhost:5432/trading_platform",
-)
+DATABASE_URL = os.environ["DATABASE_URL"]
 
 # ── Engine ─────────────────────────────────────────────────────────────
 

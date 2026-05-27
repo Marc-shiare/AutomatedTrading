@@ -7,13 +7,13 @@ import KPICards from "@/app/components/KPICards";
 import StrategyGrid from "@/app/components/StrategyGrid";
 import LivePositions from "@/app/components/LivePositions";
 import TradeExecutionLog from "@/app/components/TradeExecutionLog";
-import NewsTicker from "@/app/components/NewsTicker";
 import OptimizerProgress from "@/app/components/OptimizerProgress";
 import OptimizerStats from "@/app/components/OptimizerStats";
 import TradeWeekSummary from "@/app/components/TradeWeekSummary";
 import DailyMarketSummary from "@/app/components/DailyMarketSummary";
 import PerformanceSnapshot from "@/app/components/PerformanceSnapshot";
-import { generateMockStrategies } from "@/app/lib/mockData";
+import { useApi } from "@/app/hooks/useApi";
+import { SkeletonKPI, SkeletonCard, SkeletonChart } from "@/app/components/SkeletonLoaders";
 
 const EquityCurveChart = dynamic(
   () => import("@/app/components/EquityCurveChart"),
@@ -21,7 +21,15 @@ const EquityCurveChart = dynamic(
 );
 
 export default function DashboardPage() {
-  const strategies = generateMockStrategies(6);
+  const {
+    strategies,
+    positions,
+    trades,
+    news,
+    summary,
+    optimizer,
+    loading,
+  } = useApi();
 
   return (
     <DashboardLayout>
@@ -43,14 +51,14 @@ export default function DashboardPage() {
             <EquityCurveChart />
           </div>
           <div>
-            <LivePositions />
+            <LivePositions positions={loading ? undefined : (positions.data ?? undefined)} />
           </div>
         </div>
 
         {/* Row 3: Trade log + Optimizer (mirrors row 2) */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2">
-            <TradeExecutionLog />
+            <TradeExecutionLog trades={loading ? undefined : (trades.data ?? undefined)} />
           </div>
           <div>
             <OptimizerProgress />
@@ -64,7 +72,7 @@ export default function DashboardPage() {
           <PerformanceSnapshot />
         </div>
 
-        <StrategyGrid strategies={strategies} />
+        <StrategyGrid strategies={strategies.data || []} />
       </div>
     </DashboardLayout>
   );

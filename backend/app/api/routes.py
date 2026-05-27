@@ -200,3 +200,31 @@ async def disable_strategy(strategy_id: str):
         "status": "disabled",
         "message": f"Strategy {strategy_id} has been disabled",
     }
+
+
+# ── WebSocket Handlers (Phase 4) ────────────────────────────────────────
+
+@router.websocket("/ws/positions")
+async def ws_positions(websocket):
+    """WebSocket for live position updates."""
+    await websocket.accept()
+    while True:
+        try:
+            msg = await websocket.receive_text()
+            # Phase 5: Stream real-time position updates
+            await websocket.send_json({"type": "position_stream", "status": "connected"})
+        except Exception:
+            break
+
+
+@router.websocket("/ws/trades")
+async def ws_trades(websocket):
+    """WebSocket for trade execution notifications."""
+    await websocket.accept()
+    while True:
+        try:
+            msg = await websocket.receive_text()
+            # Phase 5: Stream trade execution events
+            await websocket.send_json({"type": "trade_stream", "status": "connected"})
+        except Exception:
+            break

@@ -4,17 +4,28 @@ import { useState, useEffect, useCallback } from "react";
 import { PositionUpdate } from "@/app/types";
 import { generateMockPositions } from "@/app/lib/mockData";
 
-export function useLivePositions(initialCount = 4, refreshInterval = 5000) {
-  const [positions, setPositions] = useState<PositionUpdate[]>(() =>
-    generateMockPositions(initialCount)
+export function useLivePositions(
+  initialCount = 4,
+  refreshInterval = 5000,
+  externalPositions?: PositionUpdate[]
+) {
+  const [localPositions, setLocalPositions] = useState<PositionUpdate[]>(() =>
+    externalPositions ? externalPositions : generateMockPositions(initialCount)
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Sync with external positions when they change
+  useEffect(() => {
+    if (externalPositions) {
+      setLocalPositions(externalPositions);
+    }
+  }, [externalPositions]);
+
   const refresh = useCallback(() => {
     setIsLoading(true);
     try {
-      setPositions(generateMockPositions(initialCount));
+      setLocalPositions(generateMockPositions(initialCount));
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch positions");
@@ -25,7 +36,7 @@ export function useLivePositions(initialCount = 4, refreshInterval = 5000) {
 
   const updatePosition = useCallback(
     (symbol: string, updates: Partial<PositionUpdate>) => {
-      setPositions((prev) =>
+      setLocalPositions((prev) =>
         prev.map((p) => (p.symbol === symbol ? { ...p, ...updates } : p))
       );
     },
@@ -35,7 +46,7 @@ export function useLivePositions(initialCount = 4, refreshInterval = 5000) {
   // Simulate live price updates
   useEffect(() => {
     const interval = setInterval(() => {
-      setPositions((prev) =>
+      setLocalPositions((prev) =>
         prev.map((position) => {
           // Realistic price movements
           const volatility = position.symbol.includes("JPY") ? 0.0005 : 0.00005;
@@ -75,5 +86,5 @@ export function useLivePositions(initialCount = 4, refreshInterval = 5000) {
     return () => clearInterval(interval);
   }, [refreshInterval]);
 
-  return { positions, isLoading, error, refresh, updatePosition };
+  return { positions: localPositions, isLoading, error, refresh, updatePosition };
 }

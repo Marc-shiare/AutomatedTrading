@@ -27,7 +27,7 @@ export default function TradeExecutionLog({
   maxItems = 8,
   autoRefresh = true,
 }: TradeExecutionLogProps) {
-  const [tradeList, setTradeList] = useState<LiveTrade[]>(initialTrades || generateMockTrades(6));
+  const [tradeList, setTradeList] = useState<LiveTrade[]>(initialTrades || []);
   const [newTradeId, setNewTradeId] = useState<string | null>(null);
 
   const addTrade = useCallback(() => {
