@@ -1,0 +1,30 @@
+# Node.js dependencies
+node_modules/
+
+# Build outputs
+.next/
+build/
+dist/
+tmp/
+out/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE folders
+.vscode/
+.idea/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Optional: OS generated files
+*.swp
+*.swo
