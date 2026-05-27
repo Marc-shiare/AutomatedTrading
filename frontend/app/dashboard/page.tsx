@@ -51,7 +51,7 @@ export default function DashboardPage() {
             <EquityCurveChart />
           </div>
           <div>
-            <LivePositions positions={loading ? undefined : (positions.data ?? undefined)} />
+            <LivePositions positions={loading ? [] : (positions.data ?? [])} />
           </div>
         </div>
 

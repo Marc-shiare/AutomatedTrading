@@ -125,3 +125,38 @@ export function useApi(): UseApiReturn {
     refreshKey,
   };
 }
+
+// ── Polled live positions hook ───────────────────────────────────────
+
+import { useCallback, useRef } from "react";
+
+export function useLivePositionsPoll(intervalMs: number = 5000) {
+  const [positions, setPositions] = useState<PositionUpdate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const fetchPositions = useCallback(async () => {
+    try {
+      const data = await getCurrentPositions();
+      if (data) {
+        setPositions(data);
+      }
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch live positions:", err);
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPositions();
+    intervalRef.current = setInterval(fetchPositions, intervalMs);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [fetchPositions, intervalMs]);
+
+  return { positions, isLoading, refresh: fetchPositions };
+}
