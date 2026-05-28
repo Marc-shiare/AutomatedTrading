@@ -1,4 +1,4 @@
-"""Trading Platform API Routes — Dual Mode: Database ↔ Mock"""
+"""Trading Platform API Routes - Dual Mode: Database <-> Mock"""
 
 import os
 from fastapi import APIRouter, HTTPException, Depends
@@ -12,11 +12,14 @@ from app.models.schemas import (
     DashboardSummary,
     OptimizerState,
     NewsEvent,
+    MT5ConnectionStatus,
+    MT5AccountInfo,
+    MT5StrategyConfig,
 )
 
 USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
 
-# ── Mock fallback ────────────────────────────────────────────────────────
+# - Mock fallback
 
 from app.utils.mock_data import (
     generate_mock_strategies,
@@ -26,7 +29,7 @@ from app.utils.mock_data import (
     generate_mock_news,
 )
 
-# ── Try DB imports ─────────────────────────────────────────────────────
+# - Try DB imports
 
 try:
     from app.db.database import async_session
@@ -37,6 +40,18 @@ except ImportError:
     USE_DB = False
 
 router = APIRouter()
+
+# ── MT5 Bridge Instance (shared) ────────────────────────────────────────
+
+try:
+    from app.mt5 import MT5Bridge
+    _mt5_bridge = MT5Bridge()
+    USE_MT5 = True
+except ImportError:
+    _mt5_bridge = None  # type: ignore
+    USE_MT5 = False
+    import logging as _logging
+    _logging.warning("MT5Bridge could not be imported; MT5 routes will return errors.")
 
 
 @router.get("/strategies", response_model=List[StrategyOptimizationResult])
@@ -383,3 +398,149 @@ async def get_strategy_equity(strategy_id: str):
             pass
 
     raise HTTPException(status_code=404, detail="Strategy not found")
+
+
+# ─── Phase 5: MT5 API ──────────────────────────────────────────────────
+
+
+class MT5ConnectRequest(BaseModel):
+    host: str = "127.0.0.1"
+    port: int = 5555
+
+
+@router.get("/mt5/status")
+async def mt5_status():
+    """Get MT5 connection status, account info, and positions count."""
+    if not USE_MT5 or _mt5_bridge is None:
+        return {
+            "connected": False,
+            "alive": False,
+            "last_heartbeat": None,
+            "account_info": None,
+            "open_positions_count": 0,
+        }
+    health = _mt5_bridge.health_check()
+    account_info = health.get("account_info", {})
+    return {
+        "connected": health["connected"],
+        "alive": health["alive"],
+        "last_heartbeat": health["last_heartbeat"],
+        "account_info": account_info,
+        "open_positions_count": health["open_position_count"],
+    }
+
+
+@router.post("/mt5/connect")
+async def mt5_connect(request: MT5ConnectRequest):
+    """Establish MT5 connection via ZeroMQ."""
+    if not USE_MT5 or _mt5_bridge is None:
+        raise HTTPException(status_code=503, detail="MT5 bridge unavailable")
+    result = _mt5_bridge.connect(host=request.host, port=request.port)
+    if result["status"] == "error":
+        raise HTTPException(status_code=500, detail=result.get("error", "Connection failed"))
+    return {"status": "connected", "host": request.host, "port": request.port}
+
+
+@router.post("/mt5/disconnect")
+async def mt5_disconnect():
+    """Disconnect from MT5."""
+    if not USE_MT5 or _mt5_bridge is None:
+        raise HTTPException(status_code=503, detail="MT5 bridge unavailable")
+    result = _mt5_bridge.disconnect()
+    return result
+
+
+@router.post("/mt5/params")
+async def mt5_params(params: dict):
+    """Update strategy parameters on MQL5 EA."""
+    if not USE_MT5 or _mt5_bridge is None:
+        raise HTTPException(status_code=503, detail="MT5 bridge unavailable")
+    if not _mt5_bridge.is_connected():
+        raise HTTPException(status_code=400, detail="MT5 is not connected")
+    result = _mt5_bridge.update_params(params)
+    return {"status": "sent", "result": result}
+
+
+@router.post("/mt5/stop")
+async def mt5_stop():
+    """Stop all trading on MT5."""
+    if not USE_MT5 or _mt5_bridge is None:
+        raise HTTPException(status_code=503, detail="MT5 bridge unavailable")
+    if not _mt5_bridge.is_connected():
+        raise HTTPException(status_code=400, detail="MT5 is not connected")
+    result = _mt5_bridge.stop_trading()
+    return {"status": "sent", "result": result}
+
+
+@router.post("/mt5/emergency")
+async def mt5_emergency():
+    """Emergency close all MT5 positions."""
+    if not USE_MT5 or _mt5_bridge is None:
+        raise HTTPException(status_code=503, detail="MT5 bridge unavailable")
+    if not _mt5_bridge.is_connected():
+        raise HTTPException(status_code=400, detail="MT5 is not connected")
+    result = _mt5_bridge.emergency_close()
+    return {"status": "sent", "result": result}
+
+
+@router.get("/mt5/account")
+async def mt5_account():
+    """Get MT5 account info."""
+    if not USE_MT5 or _mt5_bridge is None:
+        raise HTTPException(status_code=503, detail="MT5 bridge unavailable")
+    info = _mt5_bridge.get_account_info()
+    if info.get("status") == "error":
+        raise HTTPException(status_code=500, detail=info.get("error", "Failed to get account info"))
+    return info
+
+
+@router.get("/mt5/positions")
+async def mt5_positions():
+    """Get all open positions from MT5."""
+    if not USE_MT5 or _mt5_bridge is None:
+        raise HTTPException(status_code=503, detail="MT5 bridge unavailable")
+    positions = _mt5_bridge.get_positions()
+    return {"status": "ok", "positions": positions, "count": len(positions)}
+
+
+@router.get("/mt5/history")
+async def mt5_history(limit: int = 100):
+    """Get trade history from MT5 (via DB logs)."""
+    if USE_DB and not USE_MOCK:
+        try:
+            async with async_session() as session:
+                result = await session.execute(select(Trade).limit(limit))
+                trades = result.scalars().all()
+                return {
+                    "history": [
+                        {
+                            "id": t.id,
+                            "strategy_id": t.strategy_id,
+                            "symbol": t.symbol,
+                            "side": t.side.value,
+                            "entry_price": t.entry_price,
+                            "exit_price": t.exit_price,
+                            "lot_size": t.lot_size,
+                            "pnl": t.pnl,
+                            "commission": t.commission,
+                            "timestamp": t.timestamp.isoformat() if t.timestamp else None,
+                        }
+                        for t in trades
+                    ],
+                    "count": len(trades),
+                }
+        except Exception:
+            pass
+    return {"history": [], "count": 0}
+
+
+@router.get("/mt5/heartbeat")
+async def mt5_heartbeat():
+    """Get last heartbeat timestamp and health status."""
+    if not USE_MT5 or _mt5_bridge is None:
+        raise HTTPException(status_code=503, detail="MT5 bridge unavailable")
+    return {
+        "last_heartbeat": _mt5_bridge.get_last_heartbeat(),
+        "connected": _mt5_bridge.is_connected(),
+        "alive": _mt5_bridge.is_alive(),
+    }

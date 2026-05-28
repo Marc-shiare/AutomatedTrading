@@ -1,4 +1,4 @@
-"""FastAPI application — QuantumTrade API v2.0 (Phase 3)"""
+"""FastAPI application — QuantumTrade API v3.0 (Phase 5)"""
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,8 +11,8 @@ from app.api.routes import router as api_router
 
 app = FastAPI(
     title="QuantumTrade API",
-    description="Self-Optimizing Algorithmic Trading Platform API — Phase 4",
-    version="3.0.0",
+    description="Self-Optimizing Algorithmic Trading Platform API — Phase 5 (MT5 Integration)",
+    version="3.1.0",
 )
 
 # CORS
@@ -35,7 +35,7 @@ app.include_router(api_router, prefix="/api")
 async def root():
     return {
         "message": "QuantumTrade API",
-        "version": "3.0.0",
+        "version": "3.1.0",
         "status": "operational",
         "mode": "mock" if os.getenv("USE_MOCK", "true").lower() == "true" else "database",
     }
@@ -45,7 +45,7 @@ async def root():
 async def health_check():
     return {
         "status": "healthy",
-        "version": "3.0.0",
+        "version": "3.1.0",
         "database": "connected" if not os.getenv("USE_MOCK", "true").lower() == "true" else "mock",
     }
 

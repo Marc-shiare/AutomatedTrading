@@ -95,9 +95,11 @@ export function useApi(): UseApiReturn {
     error: null,
   });
 
+  // ── Polling for live positions/trades ─────────────────────────────
   const [refreshKey, setRefreshKey] = useState(0);
+  const positionsPollRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load data on mount
+  // Initial load on mount
   useEffect(() => {
     fetchWithFallback(getStrategies, setStrategies);
     fetchWithFallback(getCurrentPositions, setPositions);
@@ -105,8 +107,17 @@ export function useApi(): UseApiReturn {
     fetchWithFallback(getUpcomingNews, setNews);
     fetchWithFallback(getDashboardSummary, setSummary);
     fetchWithFallback(getOptimizerState, setOptimizer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey]);
+
+  // Live polling for positions and trades
+  useEffect(() => {
+    const poll = setInterval(() => {
+      fetchWithFallback(getCurrentPositions, setPositions);
+      fetchWithFallback(getRecentTrades, setTrades);
+    }, 5000);
+    return () => clearInterval(poll);
+  }, []);
 
   const refresh = () => setRefreshKey((k) => k + 1);
 

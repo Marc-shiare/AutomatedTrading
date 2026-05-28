@@ -90,3 +90,34 @@ class NewsEvent(BaseModel):
     impact: Literal["low", "medium", "high"]
     scheduled_time: str
     currency: str
+
+
+# --- MT5 Integration Schemas (Phase 5) ---
+
+
+class MT5AccountInfo(BaseModel):
+    login: int
+    server: str
+    currency: str
+    leverage: int
+    balance: float
+    equity: float
+    margin: float
+    free_margin: float
+    profit: float
+
+
+class MT5ConnectionStatus(BaseModel):
+    connected: bool
+    alive: bool
+    last_heartbeat: str | None = None
+    account_info: MT5AccountInfo | None = None
+
+
+class MT5StrategyConfig(BaseModel):
+    name: str
+    symbol: str
+    timeframe: str
+    parameters: StrategyParameters
+    magic_number: int
+    enabled: bool
